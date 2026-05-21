@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Infraestrutura Computacional – Resumo Prova</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap');
+
+  :root {
+    --bg: #0a0a0f;
+    --panel: #111118;
+    --border: #1e1e2e;
+    --accent1: #00e5ff;
+    --accent2: #ff6b35;
+    --accent3: #7fff6b;
+    --accent4: #bf5af2;
+    --text: #e8e8f0;
+    --muted: #888899;
+    --correct: #7fff6b;
+    --wrong: #ff4444;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    padding: 20px;
+  }
+
+  /* grid noise texture */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(0,229,255,.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,229,255,.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container { position: relative; z-index: 1; max-width: 900px; margin: 0 auto; }
+
+  header {
+    text-align: center;
+    padding: 40px 0 30px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 36px;
+  }
+
+  header .tag {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 4px;
+    color: var(--accent1);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  header h1 {
+    font-size: clamp(28px, 6vw, 48px);
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -1px;
+  }
+
+  header h1 span { color: var(--accent1); }
+
+  header p {
+    color: var(--muted);
+    font-size: 14px;
+    margin-top: 10px;
+    font-family: 'Space Mono', monospace;
+  }
+
+  /* TABS */
+  .tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+  }
+
+  .tab-btn {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 8px 16px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    cursor: pointer;
+    transition: all .2s;
+    border-radius: 4px;
+  }
+
+  .tab-btn:hover { color: var(--text); border-color: #333; }
+  .tab-btn.active { color: var(--bg); background: var(--accent1); border-color: var(--accent1); }
+
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* CARDS */
+  .section {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 24px;
+    margin-bottom: 16px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .section::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 3px; height: 100%;
+  }
+
+  .section.cyan::before { background: var(--accent1); }
+  .section.orange::before { background: var(--accent2); }
+  .section.green::before { background: var(--accent3); }
+  .section.purple::before { background: var(--accent4); }
+
+  .section-title {
+    font-size: 11px;
+    font-family: 'Space Mono', monospace;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .section.cyan .section-title { color: var(--accent1); }
+  .section.orange .section-title { color: var(--accent2); }
+  .section.green .section-title { color: var(--accent3); }
+  .section.purple .section-title { color: var(--accent4); }
+
+  .section h2 {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 14px;
+    color: #fff;
+  }
+
+  /* ITEMS */
+  .items { display: flex; flex-direction: column; gap: 8px; }
+
+  .item {
+    background: rgba(255,255,255,.03);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px 14px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+
+  .item-icon {
+    font-size: 16px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .item-text { font-size: 14px; line-height: 1.5; }
+  .item-text strong { color: var(--accent1); font-weight: 600; }
+  .item-text .highlight { color: var(--accent2); font-weight: 600; }
+  .item-text .green { color: var(--accent3); font-weight: 600; }
+  .item-text .purple { color: var(--accent4); font-weight: 600; }
+
+  /* TABLE */
+  .compare-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin-top: 8px;
+  }
+
+  .compare-table th {
+    background: rgba(0,229,255,.08);
+    color: var(--accent1);
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 10px 12px;
+    text-align: left;
+  }
+
+  .compare-table td {
+    padding: 10px 12px;
+    border-top: 1px solid var(--border);
+    vertical-align: top;
+    line-height: 1.5;
+  }
+
+  .compare-table tr:hover td { background: rgba(255,255,255,.02); }
+
+  .badge {
+    display: inline-block;
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1px;
+    padding: 2px 7px;
+    border-radius: 3px;
+    text-transform: uppercase;
+    font-weight: 700;
+  }
+
+  .badge.good { background: rgba(127,255,107,.15); color: var(--accent3); }
+  .badge.bad { background: rgba(255,100,100,.12); color: #ff7777; }
+  .badge.neutral { background: rgba(0,229,255,.12); color: var(--accent1); }
+
+  /* QUIZ / ATIVIDADE */
+  .question-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+
+  .q-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+
+  .q-num {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    background: rgba(0,229,255,.12);
+    color: var(--accent1);
+    padding: 4px 10px;
+    border-radius: 4px;
+    letter-spacing: 1px;
+  }
+
+  .q-pts {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    color: var(--accent2);
+    letter-spacing: 1px;
+  }
+
+  .q-text {
+    font-size: 14px;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 16px;
+    line-height: 1.5;
+    padding: 12px;
+    background: rgba(255,255,255,.03);
+    border-radius: 6px;
+    border-left: 3px solid var(--accent1);
+  }
+
+  /* Opções de múltipla escolha */
+  .options { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+
+  .option {
+    padding: 10px 14px;
+    border-radius: 6px;
+    font-size: 13px;
+    border: 1px solid var(--border);
+    background: rgba(255,255,255,.02);
+    cursor: default;
+    display: flex;
+    gap: 10px;
+    line-height: 1.5;
+  }
+
+  .option.correct {
+    border-color: var(--correct);
+    background: rgba(127,255,107,.08);
+    color: var(--correct);
+  }
+
+  .option.wrong-analysis {
+    border-color: rgba(255,100,100,.3);
+    background: rgba(255,100,100,.05);
+    color: #ff7777;
+    text-decoration: line-through;
+    opacity: .7;
+  }
+
+  .option-letter {
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+    font-size: 12px;
+    flex-shrink: 0;
+  }
+
+  /* Resposta dissertativa */
+  .answer-box {
+    background: rgba(0,229,255,.04);
+    border: 1px solid rgba(0,229,255,.2);
+    border-radius: 6px;
+    padding: 16px;
+    margin-top: 12px;
+  }
+
+  .answer-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--accent1);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .answer-text {
+    font-size: 13px;
+    line-height: 1.7;
+    color: var(--text);
+  }
+
+  .answer-text strong { color: var(--accent1); }
+  .answer-text .hl-orange { color: var(--accent2); font-weight: 600; }
+  .answer-text .hl-green { color: var(--accent3); font-weight: 600; }
+
+  /* GABARITO rápido */
+  .gabarito-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin-bottom: 28px;
+    align-items: center;
+  }
+
+  .gabarito-bar .gab-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-right: 4px;
+  }
+
+  .gab-item {
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 4px;
+    background: rgba(127,255,107,.12);
+    color: var(--accent3);
+    font-weight: 700;
+  }
+
+  /* FLIP CARDS */
+  .flashcards { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px; }
+
+  .flip-card { height: 130px; perspective: 800px; cursor: pointer; }
+  .flip-inner {
+    position: relative; width: 100%; height: 100%;
+    transition: transform .5s;
+    transform-style: preserve-3d;
+  }
+  .flip-card:hover .flip-inner { transform: rotateY(180deg); }
+
+  .flip-front, .flip-back {
+    position: absolute; inset: 0;
+    backface-visibility: hidden;
+    border-radius: 8px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    font-size: 13px;
+    line-height: 1.4;
+  }
+
+  .flip-front {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    color: var(--accent1);
+    font-weight: 700;
+    font-size: 14px;
+    text-align: center;
+  }
+
+  .flip-back {
+    background: linear-gradient(135deg, rgba(0,229,255,.12), rgba(191,90,242,.08));
+    border: 1px solid rgba(0,229,255,.25);
+    transform: rotateY(180deg);
+    font-size: 12px;
+    color: var(--text);
+  }
+
+  .flip-hint {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 1px;
+    color: var(--muted);
+    text-align: center;
+    margin-top: 6px;
+  }
+
+  /* Mobile */
+  @media (max-width: 600px) {
+    body { padding: 12px; }
+    .section { padding: 16px; }
+    .tabs { gap: 6px; }
+    .tab-btn { font-size: 10px; padding: 7px 12px; }
+    .flashcards { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <div class="tag">// UNIP – ADS &nbsp;|&nbsp; 2025</div>
+    <h1>Infra<span>estrutura</span><br>Computacional</h1>
+    <p>resumo para prova · aulas 05–11</p>
+  </header>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="showTab('resumo')">📚 Resumo</button>
+    <button class="tab-btn" onclick="showTab('atividade')">📝 Atividade</button>
+    <button class="tab-btn" onclick="showTab('flash')">⚡ Flashcards</button>
+  </div>
+
+  <!-- ===== RESUMO ===== -->
+  <div id="tab-resumo" class="tab-content active">
+
+    <!-- PROCESSOS -->
+    <div class="section cyan">
+      <div class="section-title">🔧 Aula 06</div>
+      <h2>Gerenciamento de Processos</h2>
+      <div class="items">
+        <div class="item">
+          <span class="item-icon">💡</span>
+          <div class="item-text"><strong>Processo</strong> = programa <em>em execução</em> (dinâmico). <strong>Programa</strong> = arquivo parado no disco (estático).</div>
+        </div>
+        <div class="item">
+          <span class="item-icon">🔄</span>
+          <div class="item-text"><strong>Estados:</strong> Novo → Pronto → Executando → Bloqueado → Finalizado</div>
+        </div>
+        <div class="item">
+          <span class="item-icon">🧩</span>
+          <div class="item-text"><strong>Componentes de um processo:</strong> Código, Dados, Pilha (stack), Heap, Contador de Programa (PC), Registradores</div>
+        </div>
+        <div class="item">
+          <span class="item-icon">⚠️</span>
+          <div class="item-text"><strong>Condição de Corrida (Race Condition):</strong> dois ou mais processos acessam dados compartilhados simultaneamente e o resultado depende da ordem de execução.</div>
+        </div>
+        <div class="item">
+          <span class="item-icon">🔒</span>
+          <div class="item-text"><strong>Região Crítica:</strong> trecho do código que acessa recursos compartilhados. Solução exige: <span class="highlight">Exclusão mútua</span>, <span class="green">Progresso</span>, <span class="purple">Espera limitada</span>.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SEMÁFOROS -->
+    <div class="section orange">
+      <div class="section-title">🚦 Semáforos & Monitores</div>
+      <h2>Sincronização</h2>
+      <div class="items">
+        <div class="item">
+          <span class="item-icon">🚦</span>
+          <div class="item-text"><strong>Semáforo Binário (mutex):</strong> assume só 0 ou 1. Controla acesso exclusivo a um recurso.</div>
+        </div>
+        <div class="item">
+          <span class="item-icon">🔢</span>
+          <div class="item-text"><strong>Semáforo Contador:</strong> assume valores maiores que 1. Útil quando há vários recursos iguais (ex: 3 impressoras).</div>
+        </div>
+        <div class="item">
+          <span class="item-icon">⬇️</span>
+          <div class="item-text"><strong>wait(S)</strong> → <span class="highlight">decrementa</span> o semáforo. Se S=0, bloqueia o processo.</div>
+        </div>
+        <div class="item">
+          <span class="item-icon">⬆️</span>
+          <div class="item-text"><strong>signal(S)</strong> → <span class="green">incrementa</span> o semáforo. Libera outro processo.</div>
+        </div>
+        <div class="item">
+          <span class="item-icon">📦</span>
+          <div class="item-text"><strong>Monitor:</strong> estrutura de alto nível que automatiza o controle da região crítica. Só um processo entra por vez.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ESCALONAMENTO -->
+    <div class="section green">
+      <div class="section-title">⚙️ Aula 07</div>
+      <h2>Escalonamento de Processos</h2>
+      <div class="items">
+        <div class="item">
+          <span class="item-icon">🧠</span>
+          <div class="item-text"><strong>Escalonador (Scheduler):</strong> decide qual processo usa a CPU e por quanto tempo.</div>
+        </div>
+      </div>
+
+      <table class="compare-table" style="margin-top:16px">
+        <thead>
+          <tr>
+            <th>Tipo</th>
+            <th>Como funciona</th>
+            <th>Algoritmo Exemplo</th>
+            <th>Vantagem</th>
+            <th>Desvantagem</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="badge neutral">Não-Preemptivo</span></td>
+            <td>Processo rodando até terminar ou bloquear. Não pode ser interrompido pelo SO.</td>
+            <td><strong>FCFS</strong> (First Come First Served), <strong>SJF</strong></td>
+            <td>Simples</td>
+            <td>Ineficiente, pode travar CPU</td>
+          </tr>
+          <tr>
+            <td><span class="badge good">Preemptivo</span></td>
+            <td>SO pode interromper o processo a qualquer hora e dar a CPU para outro.</td>
+            <td><strong>Round Robin (RR)</strong></td>
+            <td>Justo, responsivo</td>
+            <td>Overhead de troca</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="items" style="margin-top:12px">
+        <div class="item">
+          <span class="item-icon">⏱️</span>
+          <div class="item-text"><strong>Quantum:</strong> intervalo de tempo que cada processo recebe na CPU no escalonamento preemptivo.</div>
+        </div>
+        <div class="item">
+          <span class="item-icon">📊</span>
+          <div class="item-text"><strong>Critérios:</strong> Tempo de resposta, Tempo de espera, Turnaround (retorno), Utilização da CPU, Throughput (vazão).</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MEMÓRIA -->
+    <div class="section purple">
+      <div class="section-title">💾 Aula 08</div>
+      <h2>Gerenciamento de Memória</h2>
+      <div class="items">
+        <div class="item">
+          <span class="item-icon">🗂️</span>
+          <div class="item-text"><strong>Memória física (RAM):</strong> memória real. <strong>Memória lógica:</strong> endereços vistos pelo processo (podem ser maiores que a RAM real).</div>
+        </div>
+        <div class="item">
+          <span class="item-icon">🔄</span>
+          <div class="item-text"><strong>Swapping:</strong> move um processo <em>inteiro</em> da RAM para o disco (swap out) e de volta (swap in). Resolve falta de memória, mas é LENTO.</div>
+        </div>
+        <div class="item">
+          <span class="item-icon">🌐</span>
+          <div class="item-text"><strong>Memória Virtual:</strong> usa o disco como extensão da RAM. Move <em>partes do processo</em> (páginas) — mais eficiente que swapping.</div>
+        </div>
+        <div class="item">
+          <span class="item-icon">📄</span>
+          <div class="item-text"><strong>Paginação:</strong> memória dividida em blocos (páginas). Só as páginas necessárias ficam na RAM. Problema: <span class="highlight">falha de página</span> (busca no disco).</div>
+        </div>
+      </div>
+
+      <table class="compare-table" style="margin-top:14px">
+        <thead><tr><th>Técnica</th><th>O que move</th><th>Eficiência</th></tr></thead>
+        <tbody>
+          <tr><td>Swapping</td><td>Processo inteiro</td><td>Menor (mais lento)</td></tr>
+          <tr><td>Memória Virtual</td><td>Partes (páginas)</td><td>Maior (mais moderno)</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- SISTEMAS DE ARQUIVOS -->
+    <div class="section cyan">
+      <div class="section-title">📁 Aula 09</div>
+      <h2>Sistemas de Arquivos</h2>
+      <div class="items">
+        <div class="item">
+          <span class="item-icon">🗄️</span>
+          <div class="item-text"><strong>Sistema de arquivos:</strong> mecanismo do SO para organizar, armazenar, localizar e manipular dados no disco.</div>
+        </div>
+        <div class="item">
+          <span class="item-icon">📂</span>
+          <div class="item-text"><strong>Diretórios:</strong> organizam arquivos em estrutura hierárquica (árvore). Ex: C:\Usuários\João\documentos</div>
+        </div>
+      </div>
+
+      <p style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--accent3);text-transform:uppercase;margin:16px 0 8px">Métodos de Acesso</p>
+      <table class="compare-table">
+        <thead><tr><th>Método</th><th>Como funciona</th><th>Uso típico</th></tr></thead>
+        <tbody>
+          <tr><td>Sequencial</td><td>Lê dados em ordem, um após o outro</td><td>Fita magnética, música</td></tr>
+          <tr><td>Direto (Aleatório)</td><td>Acessa qualquer posição diretamente</td><td>BD, SSD, HD moderno</td></tr>
+          <tr><td>Indexado</td><td>Usa índice (tipo índice de livro) para localizar</td><td>Sistemas de busca</td></tr>
+        </tbody>
+      </table>
+
+      <p style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--accent2);text-transform:uppercase;margin:16px 0 8px">Métodos de Alocação de Blocos</p>
+      <table class="compare-table">
+        <thead><tr><th>Método</th><th>Como funciona</th><th>✅ Vantagem</th><th>❌ Desvantagem</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>Contígua</strong></td>
+            <td>Blocos ficam lado a lado no disco</td>
+            <td>Acesso rápido, simples</td>
+            <td>Fragmentação, difícil expandir</td>
+          </tr>
+          <tr>
+            <td><strong>Encadeada</strong></td>
+            <td>Cada bloco aponta para o próximo (lista ligada)</td>
+            <td>Fácil expansão, sem espaço contíguo</td>
+            <td>Acesso mais lento</td>
+          </tr>
+          <tr>
+            <td><strong>Indexada</strong></td>
+            <td>Tabela de índices aponta para os blocos</td>
+            <td>Acesso rápido, suporta acesso direto</td>
+            <td>Espaço extra para o índice</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- CPU / HARDWARE -->
+    <div class="section orange">
+      <div class="section-title">🖥️ Aulas 05 & 10</div>
+      <h2>Organização do Computador</h2>
+      <div class="items">
+        <div class="item">
+          <span class="item-icon">🧮</span>
+          <div class="item-text"><strong>CPU:</strong> Unidade de Controle (coordena) + ULA/ALU (operações matemáticas) + Registradores (memória ultra-rápida).</div>
+        </div>
+        <div class="item">
+          <span class="item-icon">🔁</span>
+          <div class="item-text"><strong>Ciclo de instrução:</strong> 1. Busca (Fetch) → 2. Decodifica (Decode) → 3. Executa (Execute) → 4. Escreve resultado (Write Back)</div>
+        </div>
+        <div class="item">
+          <span class="item-icon">🏗️</span>
+          <div class="item-text"><strong>Arquitetura (ISA):</strong> <span class="highlight">o que</span> o processador faz. <strong>Microarquitetura:</strong> <span class="green">como</span> ele faz (pipeline, cache).</div>
+        </div>
+        <div class="item">
+          <span class="item-icon">🚌</span>
+          <div class="item-text"><strong>Barramentos:</strong> Dados (transporta dados), Endereço (localização), Controle (coordena). Conectam CPU ↔ Memória ↔ E/S.</div>
+        </div>
+        <div class="item">
+          <span class="item-icon">📶</span>
+          <div class="item-text"><strong>RAM</strong> = volátil, rápida. <strong>Secundária</strong> (HD/SSD) = não volátil, grande capacidade, mais lenta.</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /tab-resumo -->
+
+  <!-- ===== ATIVIDADE ===== -->
+  <div id="tab-atividade" class="tab-content">
+
+    <div class="gabarito-bar">
+      <span class="gab-label">gabarito rápido:</span>
+      <span class="gab-item">Q1 → C</span>
+      <span class="gab-item">Q2 → B</span>
+      <span class="gab-item">Q3 → B</span>
+      <span class="gab-item">Q4 → dissertativa</span>
+      <span class="gab-item">Q5 → dissertativa</span>
+      <span class="gab-item">Q6 → dissertativa</span>
+    </div>
+
+    <!-- Q1 -->
+    <div class="question-card">
+      <div class="q-header">
+        <span class="q-num">Q1</span>
+        <span class="q-pts">1 ponto · múltipla escolha</span>
+      </div>
+      <div class="q-text">Considere as afirmações sobre processos:<br>
+        I. Processo = programa em execução (código, dados, pilha, heap, PC, registradores).<br>
+        II. Programa é dinâmico; processo é arquivo estático.<br>
+        III. O PC (Contador de Programa) indica a próxima instrução a executar.
+      </div>
+      <div class="options">
+        <div class="option wrong-analysis"><span class="option-letter">A)</span> Apenas I está correta.</div>
+        <div class="option wrong-analysis"><span class="option-letter">B)</span> Apenas II está correta.</div>
+        <div class="option correct"><span class="option-letter">C) ✅ CORRETA</span> — Apenas I e III estão corretas.</div>
+        <div class="option wrong-analysis"><span class="option-letter">D)</span> Apenas II e III estão corretas.</div>
+        <div class="option wrong-analysis"><span class="option-letter">E)</span> I, II e III estão corretas.</div>
+      </div>
+      <div class="answer-box">
+        <div class="answer-label">💡 Por que C?</div>
+        <div class="answer-text">
+          <strong>I ✅</strong> — Correto. Processo tem código, dados, pilha, heap, PC e registradores.<br>
+          <strong>II ❌</strong> — <span class="hl-orange">Errado: está invertido!</span> O <em>programa</em> é estático (arquivo no disco) e o <em>processo</em> é dinâmico (execução ativa).<br>
+          <strong>III ✅</strong> — Correto. O Program Counter (PC) guarda o endereço da próxima instrução.
+        </div>
+      </div>
+    </div>
+
+    <!-- Q2 -->
+    <div class="question-card">
+      <div class="q-header">
+        <span class="q-num">Q2</span>
+        <span class="q-pts">1 ponto · múltipla escolha</span>
+      </div>
+      <div class="q-text">Sobre concorrência e condição de corrida:<br>
+        I. Race Condition: 2+ processos acessam dados compartilhados simultaneamente e o resultado depende da ordem de execução.<br>
+        II. Exclusão mútua: apenas um processo executa a região crítica por vez.<br>
+        III. Progresso: um processo nunca poderá esperar para acessar a região crítica.
+      </div>
+      <div class="options">
+        <div class="option wrong-analysis"><span class="option-letter">A)</span> Apenas I está correta.</div>
+        <div class="option correct"><span class="option-letter">B) ✅ CORRETA</span> — Apenas I e II estão corretas.</div>
+        <div class="option wrong-analysis"><span class="option-letter">C)</span> Apenas II e III estão corretas.</div>
+        <div class="option wrong-analysis"><span class="option-letter">D)</span> Apenas III está correta.</div>
+        <div class="option wrong-analysis"><span class="option-letter">E)</span> I, II e III estão corretas.</div>
+      </div>
+      <div class="answer-box">
+        <div class="answer-label">💡 Por que B?</div>
+        <div class="answer-text">
+          <strong>I ✅</strong> — Definição correta de condição de corrida.<br>
+          <strong>II ✅</strong> — Exclusão mútua garante acesso exclusivo à região crítica.<br>
+          <strong>III ❌</strong> — <span class="hl-orange">Errado: Progresso</span> garante que processos que <em>desejam</em> entrar na região crítica conseguirão eventualmente — mas <strong>não</strong> que nunca esperarão. "Espera limitada" é quem limita quanto tempo um processo pode esperar.
+        </div>
+      </div>
+    </div>
+
+    <!-- Q3 -->
+    <div class="question-card">
+      <div class="q-header">
+        <span class="q-num">Q3</span>
+        <span class="q-pts">1 ponto · múltipla escolha</span>
+      </div>
+      <div class="q-text">Sobre semáforos:<br>
+        I. Semáforos controlam acesso a recursos compartilhados.<br>
+        II. O semáforo binário assume apenas 0 e 1.<br>
+        III. A operação wait(S) incrementa o valor do semáforo.
+      </div>
+      <div class="options">
+        <div class="option wrong-analysis"><span class="option-letter">A)</span> Apenas I está correta.</div>
+        <div class="option correct"><span class="option-letter">B) ✅ CORRETA</span> — Apenas I e II estão corretas.</div>
+        <div class="option wrong-analysis"><span class="option-letter">C)</span> Apenas II e III estão corretas.</div>
+        <div class="option wrong-analysis"><span class="option-letter">D)</span> Apenas III está correta.</div>
+        <div class="option wrong-analysis"><span class="option-letter">E)</span> I, II e III estão corretas.</div>
+      </div>
+      <div class="answer-box">
+        <div class="answer-label">💡 Por que B?</div>
+        <div class="answer-text">
+          <strong>I ✅</strong> — Correto. Semáforos controlam acesso a recursos compartilhados.<br>
+          <strong>II ✅</strong> — Correto. Semáforo binário (mutex) = só 0 ou 1.<br>
+          <strong>III ❌</strong> — <span class="hl-orange">Errado!</span> <code>wait(S)</code> <strong>decrementa</strong>. Quem <strong>incrementa</strong> é o <code>signal(S)</code>. Pegadinha clássica!
+        </div>
+      </div>
+    </div>
+
+    <!-- Q4 -->
+    <div class="question-card">
+      <div class="q-header">
+        <span class="q-num">Q4</span>
+        <span class="q-pts">3 pontos · dissertativa</span>
+      </div>
+      <div class="q-text">Explique a diferença entre escalonamento preemptivo e não-preemptivo, apresentando um exemplo de algoritmo para cada caso.</div>
+      <div class="answer-box">
+        <div class="answer-label">✍️ Resposta modelo</div>
+        <div class="answer-text">
+          <strong>Escalonamento Não-Preemptivo:</strong> uma vez que um processo recebe a CPU, ele <em>não pode ser interrompido</em> pelo sistema operacional. Ele permanece em execução até terminar voluntariamente ou aguardar uma operação de E/S. É simples de implementar, porém pode deixar a CPU ocupada com um processo lento enquanto outros aguardam.<br><br>
+          Exemplo de algoritmo: <span class="hl-green">FCFS (First Come, First Served)</span> — atende os processos na ordem de chegada, sem interrupções.<br><br>
+          <strong>Escalonamento Preemptivo:</strong> o sistema operacional pode <em>interromper</em> um processo em execução a qualquer momento para dar a CPU a outro processo. Garante maior responsividade e justiça no uso da CPU, mas gera overhead nas trocas de contexto.<br><br>
+          Exemplo de algoritmo: <span class="hl-orange">Round Robin (RR)</span> — cada processo recebe um intervalo fixo de tempo (quantum); ao esgotar o quantum, o processo é interrompido e vai para o fim da fila.
+        </div>
+      </div>
+    </div>
+
+    <!-- Q5 -->
+    <div class="question-card">
+      <div class="q-header">
+        <span class="q-num">Q5</span>
+        <span class="q-pts">3 pontos · dissertativa</span>
+      </div>
+      <div class="q-text">Explique o que é condição de corrida e descreva como semáforos podem ser utilizados para resolver esse problema.</div>
+      <div class="answer-box">
+        <div class="answer-label">✍️ Resposta modelo</div>
+        <div class="answer-text">
+          <strong>Condição de corrida (Race Condition)</strong> ocorre quando dois ou mais processos acessam um dado compartilhado simultaneamente e o resultado final depende da ordem em que as operações são executadas. Isso leva a resultados inconsistentes e imprevisíveis, pois não há controle sobre quem acessa primeiro.<br><br>
+          <strong>Solução com semáforos:</strong> um semáforo é uma variável especial controlada por duas operações atômicas:<br>
+          • <span class="hl-green">wait(S)</span> — decrementa o semáforo; se o valor for 0, o processo fica bloqueado aguardando.<br>
+          • <span class="hl-orange">signal(S)</span> — incrementa o semáforo, liberando um processo bloqueado.<br><br>
+          Usando um <strong>semáforo binário (mutex)</strong>, inicializado em 1, o processo que deseja entrar na região crítica executa <code>wait(S)</code> — se S=1, entra e seta S=0 (bloqueando os outros). Ao sair, executa <code>signal(S)</code> — restaura S=1, liberando o próximo. Assim, <strong>apenas um processo acessa a região crítica por vez</strong>, garantindo exclusão mútua e eliminando a condição de corrida.
+        </div>
+      </div>
+    </div>
+
+    <!-- Q6 -->
+    <div class="question-card">
+      <div class="q-header">
+        <span class="q-num">Q6</span>
+        <span class="q-pts">2 pontos · dissertativa</span>
+      </div>
+      <div class="q-text">Explique a diferença entre alocação contígua, encadeada e indexada em sistemas de arquivos, destacando vantagens e desvantagens.</div>
+      <div class="answer-box">
+        <div class="answer-label">✍️ Resposta modelo</div>
+        <div class="answer-text">
+          <strong>Alocação Contígua:</strong> os blocos do arquivo ficam lado a lado no disco, em posições consecutivas.<br>
+          ✅ <span class="hl-green">Vantagem:</span> acesso rápido (leitura sequencial e direta simples) e implementação simples.<br>
+          ❌ <span class="hl-orange">Desvantagem:</span> gera fragmentação externa (espaços livres espalhados) e dificulta a expansão do arquivo.<br><br>
+
+          <strong>Alocação Encadeada:</strong> cada bloco contém um ponteiro que aponta para o próximo bloco do arquivo (como uma lista ligada).<br>
+          ✅ <span class="hl-green">Vantagem:</span> não precisa de espaço contíguo; fácil de expandir arquivos.<br>
+          ❌ <span class="hl-orange">Desvantagem:</span> acesso mais lento (para chegar ao bloco N é preciso percorrer os anteriores); desperdício de espaço com os ponteiros.<br><br>
+
+          <strong>Alocação Indexada:</strong> um bloco especial de índice armazena os endereços de todos os blocos do arquivo, como um índice de livro.<br>
+          ✅ <span class="hl-green">Vantagem:</span> acesso direto rápido a qualquer bloco; suporta acesso aleatório eficiente.<br>
+          ❌ <span class="hl-orange">Desvantagem:</span> consome espaço extra para armazenar o bloco de índice, mesmo em arquivos pequenos.
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /tab-atividade -->
+
+  <!-- ===== FLASHCARDS ===== -->
+  <div id="tab-flash" class="tab-content">
+    <p style="font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);margin-bottom:20px;letter-spacing:1px">// passe o mouse para revelar a resposta</p>
+    <div class="flashcards">
+
+      <div class="flip-card">
+        <div class="flip-inner">
+          <div class="flip-front">O que é um processo?<div class="flip-hint">hover para ver</div></div>
+          <div class="flip-back">Programa em execução. Possui: código, dados, pilha, heap, PC e registradores.</div>
+        </div>
+      </div>
+
+      <div class="flip-card">
+        <div class="flip-inner">
+          <div class="flip-front">Processo vs Programa</div>
+          <div class="flip-back">Programa = estático (arquivo). Processo = dinâmico (execução ativa).</div>
+        </div>
+      </div>
+
+      <div class="flip-card">
+        <div class="flip-inner">
+          <div class="flip-front">O que faz o wait(S)?</div>
+          <div class="flip-back">DECREMENTA o semáforo. Se S=0, bloqueia o processo.</div>
+        </div>
+      </div>
+
+      <div class="flip-card">
+        <div class="flip-inner">
+          <div class="flip-front">O que faz o signal(S)?</div>
+          <div class="flip-back">INCREMENTA o semáforo. Libera um processo bloqueado.</div>
+        </div>
+      </div>
+
+      <div class="flip-card">
+        <div class="flip-inner">
+          <div class="flip-front">Race Condition</div>
+          <div class="flip-back">2+ processos acessam dado compartilhado e resultado depende da ordem de execução.</div>
+        </div>
+      </div>
+
+      <div class="flip-card">
+        <div class="flip-inner">
+          <div class="flip-front">FCFS vs Round Robin</div>
+          <div class="flip-back">FCFS = não-preemptivo, ordem de chegada. RR = preemptivo, quantum de tempo.</div>
+        </div>
+      </div>
+
+      <div class="flip-card">
+        <div class="flip-inner">
+          <div class="flip-front">Swapping vs Memória Virtual</div>
+          <div class="flip-back">Swapping = move processo INTEIRO. Memória virtual = move PARTES (páginas). Virtual é mais eficiente.</div>
+        </div>
+      </div>
+
+      <div class="flip-card">
+        <div class="flip-inner">
+          <div class="flip-front">Alocação Contígua</div>
+          <div class="flip-back">Blocos lado a lado. ✅ Rápida ❌ Fragmentação, difícil expandir.</div>
+        </div>
+      </div>
+
+      <div class="flip-card">
+        <div class="flip-inner">
+          <div class="flip-front">Alocação Encadeada</div>
+          <div class="flip-back">Cada bloco aponta pro próximo. ✅ Sem espaço contíguo ❌ Acesso lento.</div>
+        </div>
+      </div>
+
+      <div class="flip-card">
+        <div class="flip-inner">
+          <div class="flip-front">Alocação Indexada</div>
+          <div class="flip-back">Tabela de índices. ✅ Acesso rápido direto ❌ Espaço extra pro índice.</div>
+        </div>
+      </div>
+
+      <div class="flip-card">
+        <div class="flip-inner">
+          <div class="flip-front">Semáforo Binário</div>
+          <div class="flip-back">Mutex: só assume 0 ou 1. Garante exclusão mútua em recursos únicos.</div>
+        </div>
+      </div>
+
+      <div class="flip-card">
+        <div class="flip-inner">
+          <div class="flip-front">Ciclo de Instrução da CPU</div>
+          <div class="flip-back">1. Fetch (busca) → 2. Decode → 3. Execute → 4. Write Back</div>
+        </div>
+      </div>
+
+      <div class="flip-card">
+        <div class="flip-inner">
+          <div class="flip-front">Estados de um Processo</div>
+          <div class="flip-back">Novo → Pronto → Executando → Bloqueado → Finalizado</div>
+        </div>
+      </div>
+
+      <div class="flip-card">
+        <div class="flip-inner">
+          <div class="flip-front">ISA vs Microarquitetura</div>
+          <div class="flip-back">ISA = O QUE o processador faz. Microarquitetura = COMO ele faz (pipeline, cache).</div>
+        </div>
+      </div>
+
+    </div>
+  </div><!-- /tab-flash -->
+
+</div><!-- /container -->
+
+<script>
+function showTab(name) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  event.currentTarget.classList.add('active');
+}
+</script>
+</body>
+</html>
