@@ -369,7 +369,7 @@
     transition: transform .5s;
     transform-style: preserve-3d;
   }
-  .flip-card:hover .flip-inner { transform: rotateY(180deg); }
+  .flip-card.flipped .flip-inner { transform: rotateY(180deg); }
 
   .flip-front, .flip-back {
     position: absolute; inset: 0;
@@ -822,12 +822,12 @@
 
   <!-- ===== FLASHCARDS ===== -->
   <div id="tab-flash" class="tab-content">
-    <p style="font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);margin-bottom:20px;letter-spacing:1px">// passe o mouse para revelar a resposta</p>
+    <p style="font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);margin-bottom:20px;letter-spacing:1px">// toque no card para virar</p>
     <div class="flashcards">
 
       <div class="flip-card">
         <div class="flip-inner">
-          <div class="flip-front">O que é um processo?<div class="flip-hint">hover para ver</div></div>
+          <div class="flip-front">O que é um processo?<div class="flip-hint">toque para virar</div></div>
           <div class="flip-back">Programa em execução. Possui: código, dados, pilha, heap, PC e registradores.</div>
         </div>
       </div>
@@ -1123,6 +1123,11 @@ function qzRestart(){
 
 qzOrder=qzShuffle([...Array(qzQuestions.length).keys()]);
 qzRender();
+
+/* ===== FLASHCARDS clique/toque ===== */
+document.querySelectorAll('.flip-card').forEach(card => {
+  card.addEventListener('click', () => card.classList.toggle('flipped'));
+});
 </script>
 </body>
 </html>
