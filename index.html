@@ -433,6 +433,7 @@
     <button class="tab-btn active" onclick="showTab('resumo')">📚 Resumo</button>
     <button class="tab-btn" onclick="showTab('atividade')">📝 Atividade</button>
     <button class="tab-btn" onclick="showTab('flash')">⚡ Flashcards</button>
+    <button class="tab-btn" onclick="showTab('quiz')">🎯 Quiz</button>
   </div>
 
   <!-- ===== RESUMO ===== -->
@@ -925,7 +926,76 @@
     </div>
   </div><!-- /tab-flash -->
 
+  <!-- ===== QUIZ ===== -->
+  <div id="tab-quiz" class="tab-content">
+
+    <!-- quiz screen -->
+    <div id="quiz-screen">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <span style="font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:1px;">
+          Questão <strong id="q-num" style="color:var(--accent1)">1</strong> de 10
+        </span>
+        <span style="font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:1px;">
+          Acertos: <strong id="score-live" style="color:var(--accent3)">0</strong>
+        </span>
+      </div>
+
+      <div style="height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin-bottom:24px;">
+        <div id="prog-fill" style="height:100%;background:var(--accent1);border-radius:2px;width:10%;transition:width .4s;"></div>
+      </div>
+
+      <div class="section cyan" style="margin-bottom:16px;">
+        <div class="section-title" id="q-topic">Questão</div>
+        <p id="q-text" style="font-size:15px;font-weight:600;line-height:1.6;color:#fff;"></p>
+      </div>
+
+      <div id="qz-options" style="display:flex;flex-direction:column;gap:10px;"></div>
+
+      <div id="qz-feedback" style="display:none;border-radius:8px;padding:14px 16px;margin-top:14px;font-size:13px;line-height:1.7;border-left:3px solid;"></div>
+
+      <div style="display:flex;justify-content:flex-end;margin-top:16px;">
+        <button id="qz-next-btn" onclick="qzNext()" style="display:none;font-family:'Space Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;padding:10px 20px;background:var(--accent1);color:#000;border:none;border-radius:6px;cursor:pointer;font-weight:700;">
+          Próxima →
+        </button>
+      </div>
+    </div>
+
+    <!-- result screen -->
+    <div id="qz-result" style="display:none;text-align:center;padding:20px 0;">
+      <div id="qz-final-score" style="font-size:64px;font-weight:800;color:var(--accent1);letter-spacing:-2px;margin-bottom:8px;"></div>
+      <p id="qz-final-msg" style="font-size:15px;color:var(--muted);margin-bottom:28px;line-height:1.6;"></p>
+      <div id="qz-topic-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px;margin-bottom:28px;text-align:left;"></div>
+      <button onclick="qzRestart()" style="font-family:'Space Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;padding:12px 24px;background:var(--accent1);color:#000;border:none;border-radius:6px;cursor:pointer;font-weight:700;">
+        Tentar de novo
+      </button>
+    </div>
+
+  </div><!-- /tab-quiz -->
+
 </div><!-- /container -->
+
+<style>
+.qz-opt {
+  width:100%;text-align:left;
+  background:rgba(255,255,255,.03);
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:13px 16px;
+  color:var(--text);
+  font-family:'Syne',sans-serif;
+  font-size:14px;line-height:1.5;
+  cursor:pointer;
+  display:flex;gap:12px;align-items:flex-start;
+  transition:background .15s,border-color .15s;
+}
+.qz-opt:hover:not(:disabled){background:rgba(255,255,255,.06);border-color:#333;}
+.qz-opt:disabled{cursor:default;}
+.qz-opt .ql{font-family:'Space Mono',monospace;font-size:11px;font-weight:700;color:var(--muted);flex-shrink:0;padding-top:2px;min-width:20px;}
+.qz-opt.qz-correct{background:rgba(127,255,107,.1);border-color:#7fff6b;color:#7fff6b;}
+.qz-opt.qz-correct .ql{color:#7fff6b;}
+.qz-opt.qz-wrong{background:rgba(255,85,85,.07);border-color:#ff5555;color:#ff7777;text-decoration:line-through;opacity:.8;}
+.qz-opt.qz-wrong .ql{color:#ff7777;}
+</style>
 
 <script>
 function showTab(name) {
@@ -934,6 +1004,125 @@ function showTab(name) {
   document.getElementById('tab-' + name).classList.add('active');
   event.currentTarget.classList.add('active');
 }
+
+/* ===== QUIZ LOGIC ===== */
+const qzQuestions = [
+  { q:"Qual é a diferença correta entre programa e processo?", opts:["Programa é dinâmico; processo é um arquivo estático.","Processo é um programa em execução (dinâmico); programa é um arquivo estático no disco.","Processo e programa são sinônimos.","Programa consome CPU; processo não."], ans:1, exp:"Programa = arquivo estático no disco. Processo = programa em execução, com código, dados, pilha, heap, PC e registradores.", topic:"Processos" },
+  { q:"Quais são os componentes de um processo?", opts:["Apenas código e dados.","CPU, RAM e disco.","Código, dados, pilha (stack), heap, registradores e contador de programa (PC).","Monitor, teclado e mouse."], ans:2, exp:"Um processo possui: código, dados, pilha (stack), heap, registradores e o PC (contador de programa) que indica a próxima instrução.", topic:"Processos" },
+  { q:"O que é condição de corrida (Race Condition)?", opts:["Quando dois processos competem pela memória RAM.","Quando a CPU executa processos em paralelo com sucesso.","Quando dois ou mais processos acessam dados compartilhados e o resultado depende da ordem de execução.","Quando o escalonador prioriza processos de alta prioridade."], ans:2, exp:"Race Condition: 2+ processos acessam dado compartilhado simultaneamente e o resultado varia conforme a ordem — imprevisível e perigoso.", topic:"Concorrência" },
+  { q:"O que faz a operação wait(S) em um semáforo?", opts:["Incrementa o valor do semáforo e libera um processo.","Decrementa o valor; se S = 0, bloqueia o processo.","Cria um novo semáforo com valor inicial S.","Reseta o semáforo para zero."], ans:1, exp:"wait(S) DECREMENTA. Se S > 0, o processo continua. Se S = 0, bloqueia. Já signal(S) INCREMENTA e libera processos.", topic:"Semáforos" },
+  { q:"O semáforo binário (mutex) pode assumir os valores:", opts:["Qualquer inteiro positivo.","Apenas 0 e 1.","0, 1 e 2.","Qualquer valor inteiro."], ans:1, exp:"Semáforo binário (mutex) = só 0 ou 1. 1 = recurso livre, 0 = ocupado. Garante exclusão mútua.", topic:"Semáforos" },
+  { q:"Qual é a principal diferença entre escalonamento preemptivo e não-preemptivo?", opts:["No preemptivo, processos são executados em ordem de chegada.","No não-preemptivo, o SO pode interromper o processo a qualquer momento.","No preemptivo, o SO pode interromper o processo; no não-preemptivo, o processo roda até terminar ou bloquear.","Não há diferença prática entre os dois."], ans:2, exp:"Preemptivo: SO interrompe o processo (ex: Round Robin). Não-preemptivo: processo roda até terminar ou ir para E/S (ex: FCFS).", topic:"Escalonamento" },
+  { q:"O algoritmo FCFS (First Come, First Served) é do tipo:", opts:["Preemptivo.","Não-preemptivo.","Preemptivo com quantum fixo.","Assimétrico."], ans:1, exp:"FCFS é não-preemptivo: atende os processos na ordem de chegada, sem interrupções.", topic:"Escalonamento" },
+  { q:"Qual é a diferença entre swapping e memória virtual?", opts:["Swapping move partes do processo; memória virtual move o processo inteiro.","Swapping move o processo inteiro para o disco; memória virtual move partes (páginas).","São a mesma técnica com nomes diferentes.","Swapping usa RAM; memória virtual usa apenas o processador."], ans:1, exp:"Swapping = move o processo INTEIRO. Memória virtual = move PÁGINAS (partes). Memória virtual é mais eficiente.", topic:"Memória" },
+  { q:"Na alocação encadeada de arquivos, qual é a principal desvantagem?", opts:["Fragmentação externa severa.","Dificuldade de expandir o arquivo.","Acesso mais lento — é preciso percorrer os blocos em sequência.","Necessidade de espaço contíguo no disco."], ans:2, exp:"Na encadeada, cada bloco aponta para o próximo. Para chegar ao bloco N, percorre todos os anteriores — acesso direto é lento.", topic:"Sistemas de Arquivos" },
+  { q:"Qual método de alocação usa uma tabela de índices para localizar os blocos do arquivo?", opts:["Contígua.","Encadeada.","Indexada.","Bitmap."], ans:2, exp:"Alocação Indexada: bloco de índice com endereços de todos os blocos do arquivo. Acesso direto rápido, mas gasta espaço extra.", topic:"Sistemas de Arquivos" }
+];
+
+const qzTopics = [
+  {name:"Processos", qs:[0,1]},
+  {name:"Concorrência", qs:[2]},
+  {name:"Semáforos", qs:[3,4]},
+  {name:"Escalonamento", qs:[5,6]},
+  {name:"Memória", qs:[7]},
+  {name:"Sistemas de Arquivos", qs:[8,9]}
+];
+
+let qzCurrent=0, qzScore=0, qzAnswered=false, qzWrong=[], qzOrder=[];
+
+function qzShuffle(arr){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+function qzRender(){
+  const idx=qzOrder[qzCurrent];
+  const q=qzQuestions[idx];
+  document.getElementById('q-num').textContent=qzCurrent+1;
+  document.getElementById('q-topic').textContent='Questão '+(qzCurrent+1)+' · '+q.topic;
+  document.getElementById('q-text').textContent=q.q;
+  document.getElementById('score-live').textContent=qzScore;
+  document.getElementById('prog-fill').style.width=((qzCurrent+1)/qzQuestions.length*100)+'%';
+  const fb=document.getElementById('qz-feedback');
+  fb.style.display='none';
+  const cont=document.getElementById('qz-options');
+  cont.innerHTML='';
+  ['A','B','C','D'].forEach((l,i)=>{
+    const btn=document.createElement('button');
+    btn.className='qz-opt';
+    btn.innerHTML=`<span class="ql">${l}</span><span>${q.opts[i]}</span>`;
+    btn.onclick=()=>qzSelect(i,idx);
+    cont.appendChild(btn);
+  });
+  document.getElementById('qz-next-btn').style.display='none';
+  qzAnswered=false;
+}
+
+function qzSelect(chosen,qIdx){
+  if(qzAnswered)return;
+  qzAnswered=true;
+  const q=qzQuestions[qIdx];
+  document.querySelectorAll('.qz-opt').forEach((btn,i)=>{
+    btn.disabled=true;
+    if(i===q.ans)btn.classList.add('qz-correct');
+    else if(i===chosen&&chosen!==q.ans)btn.classList.add('qz-wrong');
+  });
+  const fb=document.getElementById('qz-feedback');
+  if(chosen===q.ans){
+    qzScore++;
+    document.getElementById('score-live').textContent=qzScore;
+    fb.style.background='rgba(127,255,107,.07)';
+    fb.style.borderColor='#7fff6b';
+    fb.style.color='#aaffaa';
+    fb.innerHTML='<strong style="color:#fff">✓ Correto!</strong> '+q.exp;
+  } else {
+    qzWrong.push(qIdx);
+    fb.style.background='rgba(255,85,85,.07)';
+    fb.style.borderColor='#ff5555';
+    fb.style.color='#ffaaaa';
+    fb.innerHTML='<strong style="color:#fff">✗ Errado.</strong> '+q.exp;
+  }
+  fb.style.display='block';
+  document.getElementById('qz-next-btn').style.display='block';
+}
+
+function qzNext(){
+  qzCurrent++;
+  if(qzCurrent>=qzQuestions.length)qzShowResult();
+  else qzRender();
+}
+
+function qzShowResult(){
+  document.getElementById('quiz-screen').style.display='none';
+  document.getElementById('qz-result').style.display='block';
+  const pct=Math.round(qzScore/qzQuestions.length*100);
+  document.getElementById('qz-final-score').textContent=qzScore+' / '+qzQuestions.length;
+  let msg;
+  if(pct>=90)msg='Arrasou! Tá na cara que vai bombar na prova.';
+  else if(pct>=70)msg='Bom desempenho! Revisa os que errou e tá garantido.';
+  else if(pct>=50)msg='Metade certa. Vale dar uma relida nos tópicos fracos.';
+  else msg='Eita! Cola no resumo e refaz o quiz antes da prova.';
+  document.getElementById('qz-final-msg').textContent=msg;
+  const grid=document.getElementById('qz-topic-grid');
+  grid.innerHTML='';
+  qzTopics.forEach(tp=>{
+    const certas=tp.qs.filter(qi=>!qzWrong.includes(qi)).length;
+    const ok=certas===tp.qs.length;
+    const card=document.createElement('div');
+    card.style.cssText='background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:14px 16px;';
+    card.innerHTML=`<div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1px;color:var(--muted);text-transform:uppercase;margin-bottom:6px;">${tp.name}</div>
+      <div style="font-size:20px;font-weight:700;color:${ok?'#7fff6b':'#ff7777'}">${certas}/${tp.qs.length} ${ok?'✓':'✗'}</div>`;
+    grid.appendChild(card);
+  });
+}
+
+function qzRestart(){
+  qzCurrent=0;qzScore=0;qzAnswered=false;qzWrong=[];
+  qzOrder=qzShuffle([...Array(qzQuestions.length).keys()]);
+  document.getElementById('qz-result').style.display='none';
+  document.getElementById('quiz-screen').style.display='block';
+  qzRender();
+}
+
+qzOrder=qzShuffle([...Array(qzQuestions.length).keys()]);
+qzRender();
 </script>
 </body>
 </html>
